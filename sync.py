@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 import json
 import configparser
+import sys
 
 
 class LinkSync():
@@ -22,14 +23,23 @@ class LinkSync():
         all_links = dict()
         paginate = True
         id = ""
-        #while paginate:
-        r = requests.get(self.url + "/links?limit=25&last={}".format(id),
-        headers=self.headers)
-        data = r.json()
-        for d in data:
-            if d['slashtag'] not in all_links.keys():
-                all_links[d['slashtag']] = {'url' : d['destination'], 'date_added' : d['createdAt'], 'id' : d['id']}
+        while paginate:
+            try:
+                r = requests.get(self.url + "/links?limit=25&last={}".format(id),
+                headers=self.headers)
+
+                data = r.json()
+                for d in data:
+                    if d['slashtag'] not in all_links.keys():
+                        all_links[d['slashtag']] = {'url' : d['destination'], 'date_added' : d['createdAt'], 'id' : d['id']}
+                id = d['id']
+                if len(data) != 25:
+                    paginate = False
+            except:
+                print('[!] Could not fetch links from service. Configure your API creds.')
+                sys.exit()
         return all_links
+
 
     def add_link(self, slashtag, url):
         if not url.startswith('https://'):
@@ -82,6 +92,7 @@ class LinkSync():
 
 
     def sync(self):
+        changes = False
         links = self.list_all_links()
         df = pd.read_csv('shortlinks.csv')
         for index, row in df.iterrows():
@@ -90,17 +101,20 @@ class LinkSync():
             if row['slashtag'] in links.keys() and row['url'] != links[row['slashtag']]['url']:
                 print('[*] Updating', row['slashtag'], 'with', row['url'])
                 self.update_link(row['slashtag'], row['url'], links[row['slashtag']]['id'])
+                changes = True
             if row['slashtag'] not in links.keys():
                 print('[*] Adding', row['slashtag'], 'with', row['url'])
                 self.add_link(row['slashtag'], row['url'])
+                changes = True
         for slashtag in links.keys():
             if slashtag not in df['slashtag'].unique():
                 print('[*] Deleting {}'.format(slashtag))
                 self.delete_link(links[slashtag]['id'], slashtag)
+                changes = True
+        if changes:
+            links = self.list_all_links()
+            self.export_csv(links)
         print('[*] Done.')
-        links = self.list_all_links()
-        self.export_csv(links)
-
 
 if __name__ == '__main__':
     ls = LinkSync()
