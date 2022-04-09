@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 import json
 import configparser
+import sys
 
 
 class LinkSync():
@@ -22,14 +23,23 @@ class LinkSync():
         all_links = dict()
         paginate = True
         id = ""
-        #while paginate:
-        r = requests.get(self.url + "/links?limit=25&last={}".format(id),
-        headers=self.headers)
-        data = r.json()
-        for d in data:
-            if d['slashtag'] not in all_links.keys():
-                all_links[d['slashtag']] = {'url' : d['destination'], 'date_added' : d['createdAt'], 'id' : d['id']}
+        while paginate:
+            try:
+                r = requests.get(self.url + "/links?limit=25&last={}".format(id),
+                headers=self.headers)
+
+                data = r.json()
+                for d in data:
+                    if d['slashtag'] not in all_links.keys():
+                        all_links[d['slashtag']] = {'url' : d['destination'], 'date_added' : d['createdAt'], 'id' : d['id']}
+                id = d['id']
+                if len(data) != 25:
+                    paginate = False
+            except:
+                print('[!] Could not fetch links from service. Configure your API creds.')
+                sys.exit()
         return all_links
+
 
     def add_link(self, slashtag, url):
         if not url.startswith('https://'):
