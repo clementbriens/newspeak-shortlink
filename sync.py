@@ -92,6 +92,7 @@ class LinkSync():
 
 
     def sync(self):
+        changes = False
         links = self.list_all_links()
         df = pd.read_csv('shortlinks.csv')
         for index, row in df.iterrows():
@@ -100,17 +101,20 @@ class LinkSync():
             if row['slashtag'] in links.keys() and row['url'] != links[row['slashtag']]['url']:
                 print('[*] Updating', row['slashtag'], 'with', row['url'])
                 self.update_link(row['slashtag'], row['url'], links[row['slashtag']]['id'])
+                changes = True
             if row['slashtag'] not in links.keys():
                 print('[*] Adding', row['slashtag'], 'with', row['url'])
                 self.add_link(row['slashtag'], row['url'])
+                changes = True
         for slashtag in links.keys():
             if slashtag not in df['slashtag'].unique():
                 print('[*] Deleting {}'.format(slashtag))
                 self.delete_link(links[slashtag]['id'], slashtag)
+                changes = True
+        if changes:
+            links = self.list_all_links()
+            self.export_csv(links)
         print('[*] Done.')
-        links = self.list_all_links()
-        self.export_csv(links)
-
 
 if __name__ == '__main__':
     ls = LinkSync()
