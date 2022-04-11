@@ -9,11 +9,17 @@ class LinkSync():
 
     def __init__(self):
         print('[*] LinkSync started')
-        self.config = configparser.ConfigParser()
-        self.config.read('config.ini')
+        try:
+            self.config = configparser.ConfigParser()
+            self.config.read('config.ini')
+            self.domain = self.config['config']['domain']
+            self.api_key = self.config['config']['api_key']
+        except:
+            self.config = False
+            self.domain = sys.argv[1]
+            self.api_key = sys.argv[2]
+
         self.url = 'https://api.rebrandly.com/v1'
-        self.api_key = self.config['config']['api_key']
-        self.domain = self.config['config']['domain']
         self.headers = {
           "Content-type": "application/json",
           "apikey": self.api_key
