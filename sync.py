@@ -42,7 +42,7 @@ class LinkSync():
 
 
     def add_link(self, slashtag, url):
-        if not url.startswith('https://'):
+        if not url.startswith('https://') and not url.startswith('http://'):
             url = 'https://' + url
         payload = {
         'title' : url,
@@ -57,7 +57,7 @@ class LinkSync():
             print('[!] {} Could not add link.'.format(r.status_code))
 
     def update_link(self, slashtag, url, id):
-        if not url.startswith('https://'):
+        if not url.startswith('https://') and not url.startswith('http://'):
             url = 'https://' + url
         payload = {
         'id' : id,
@@ -96,7 +96,7 @@ class LinkSync():
         links = self.list_all_links()
         df = pd.read_csv('shortlinks.csv')
         for index, row in df.iterrows():
-            if not row['url'].startswith('https://'):
+            if not row['url'].startswith('https://') and not row['url'].startswith('http://'):
                 row['url'] = 'https://' + row['url']
             if row['slashtag'] in links.keys() and row['url'] != links[row['slashtag']]['url']:
                 print('[*] Updating', row['slashtag'], 'with', row['url'])
