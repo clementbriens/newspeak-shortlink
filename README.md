@@ -37,3 +37,10 @@ Follow these steps if you want to run this service.
 ## Configuration
 
 Add your Rebrandly API key and domain to `config.ini`.
+
+
+## Attribution
+Huge thanks to @patcon. This repo is a pale imitation of https://github.com/patcon/go.talent.c4nada.ca.
+
+* https://github.com/g0v-network/link.g0v.network
+* https://hackmd.io/@patcon/shortlinks-about
